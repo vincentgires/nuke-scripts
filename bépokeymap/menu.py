@@ -4,6 +4,8 @@ import nuke
 import nukescripts
 from functools import partial
 
+shortcut_context = {'window': 0, 'application': 1, 'dag': 2}
+
 
 def invert_disable():
     for n in nuke.selectedNodes():
@@ -18,18 +20,27 @@ menu.addCommand('Save', nuke.scriptSave, 'ctrl+u')
 menu.addCommand('Select pattern', nuke.selectPattern, 'f3')
 menu.addCommand(
     'Connect viewer 1 to selection',
-    partial(nukescripts.connect_selected_to_viewer, 0), '"')
+    partial(nukescripts.connect_selected_to_viewer, 0), '"',
+    shortcutContext=shortcut_context['dag'])
 menu.addCommand(
     'Connect viewer 2 to selection',
-    partial(nukescripts.connect_selected_to_viewer, 1), '«')
+    partial(nukescripts.connect_selected_to_viewer, 1), '«',
+    shortcutContext=shortcut_context['dag'])
 menu.addCommand(
     'Connect viewer 3 to selection',
-    partial(nukescripts.connect_selected_to_viewer, 2), '»')
+    partial(nukescripts.connect_selected_to_viewer, 2), '»',
+    shortcutContext=shortcut_context['dag'])
 menu.addCommand(
     'Connect viewer 4 to selection',
-    partial(nukescripts.connect_selected_to_viewer, 3), '(')
+    partial(nukescripts.connect_selected_to_viewer, 3), '(',
+    shortcutContext=shortcut_context['dag'])
 menu.addCommand(
     'Connect viewer 5 to selection',
-    partial(nukescripts.connect_selected_to_viewer, 4), ')')
-menu.addCommand('Autoplace snap all', nuke.autoplace_snap_all, 'é')
-menu.addCommand('Invert disable', invert_disable, 'e')
+    partial(nukescripts.connect_selected_to_viewer, 4), ')',
+    shortcutContext=shortcut_context['dag'])
+menu.addCommand(
+    'Autoplace snap all', nuke.autoplace_snap_all, 'é',
+    shortcutContext=shortcut_context['dag'])
+menu.addCommand(
+    'Invert disable', invert_disable, 'e',
+    shortcutContext=shortcut_context['dag'])
