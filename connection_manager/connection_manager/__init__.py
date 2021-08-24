@@ -22,6 +22,8 @@ def get_knob():
 
 def get_knob_value():
     knob = get_knob()
+    if knob is None:
+        return
     value = knob.value()
     if value:
         value = value.replace(' ', '').split(',')
@@ -32,7 +34,8 @@ def get_knob_value():
 
 def set_knob_value(value):
     knob = get_knob()
-    knob.setValue(value)
+    if knob is not None:
+        knob.setValue(value)
 
 
 def add_node(node_name):
