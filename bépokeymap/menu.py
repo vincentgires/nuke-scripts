@@ -13,11 +13,23 @@ def invert_disable():
         knob.setValue(not knob.value())
 
 
+def zoom(direction, factor=0.5):
+    z = nuke.zoom()
+    value = z * factor
+    if direction == '+':
+        v = z + value
+    elif direction == '-':
+        v = z - value
+    nuke.zoom(v, nuke.center())
+
+
 menu = nuke.menu('Nuke').addMenu('bépokeymap')
 menu.addCommand('Undo', nuke.undo, 'ctrl+à')
 menu.addCommand('Redo', nuke.redo, 'ctrl+y')
 menu.addCommand('Save', nuke.scriptSave, 'ctrl+u')
 menu.addCommand('Select pattern', nuke.selectPattern, 'f3')
+menu.addCommand('Zoom +', partial(zoom, '+'), ',')
+menu.addCommand('Zoom -', partial(zoom, '-'), 'è')
 menu.addCommand(
     'Connect viewer 1 to selection',
     partial(nukescripts.connect_selected_to_viewer, 0), '"',
