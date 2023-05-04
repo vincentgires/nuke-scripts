@@ -1,26 +1,28 @@
 import nuke
 
+knob_constructors = {
+    'STRING': nuke.String_Knob,
+    'ENUMERATE': nuke.Enumeration_Knob,
+    'TEXT': nuke.Text_Knob,
+    'NUMBER': nuke.Int_Knob,
+    'BOOLEAN': nuke.Boolean_Knob,
+    'SCRIPT': nuke.Script_Knob,
+    'RADIO': nuke.Radio_Knob,
+    'COLOR_CHIP': nuke.ColorChip_Knob}
+
 
 def create_knob(
-        node, subtype, name, label='', value='', newline=False, disable=False):
+        node,
+        subtype,
+        name,
+        label='',
+        value='',
+        newline=False,
+        disable=False):
     knob = node.knob(name)
     if knob is not None:
         return knob
-    if subtype == 'STRING':
-        Knob = nuke.String_Knob  # noqa: N806
-    elif subtype == 'ENUMERATE':
-        Knob = nuke.Enumeration_Knob  # noqa: N806
-    elif subtype == 'TEXT':
-        Knob = nuke.Text_Knob  # noqa: N806
-    elif subtype == 'NUMBER':
-        Knob = nuke.Int_Knob  # noqa: N806
-    elif subtype == 'BOOLEAN':
-        Knob = nuke.Boolean_Knob  # noqa: N806
-    elif subtype == 'SCRIPT':
-        Knob = nuke.Script_Knob  # noqa: N806
-    elif subtype == 'RADIO':
-        Knob = nuke.Radio_Knob  # noqa: N806
-    knob = Knob(name, label, value)
+    knob = knob_constructors[subtype](name, label, value)
     node.addKnob(knob)
     if newline:
         knob.setFlag(nuke.STARTLINE)
