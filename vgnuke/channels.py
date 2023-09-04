@@ -1,8 +1,8 @@
 import nuke
 
 
-def get_available_layers(node, prefix):
-    """Get all available layers in the image"""
+def get_available_channels(node, prefix=None, keep_ext=False):
+    """Get all available channels"""
 
     # Connect a deepToImage to get channels
     # Not working with deep image
@@ -12,7 +12,8 @@ def get_available_layers(node, prefix):
     nuke.delete(deeptoimage)
 
     # Keep only the channel name without extension
-    layers = list(
-        set([c.split('.')[0] for c in channels if c.startswith(prefix)]))
-    layers.sort()
-    return layers
+    result = list(set([c if keep_ext else c.split('.')[0] for c in channels]))
+    if prefix is not None:
+        result = [c for c in result if c.startswith(prefix)]
+    result.sort()
+    return result
