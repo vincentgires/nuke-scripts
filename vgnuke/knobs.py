@@ -1,4 +1,6 @@
 import nuke
+from nuke import Knob
+from .typing import Node
 
 knob_constructors = {
     'STRING': nuke.String_Knob,
@@ -12,13 +14,13 @@ knob_constructors = {
 
 
 def create_knob(
-        node,
-        subtype,
-        name,
-        label='',
-        value='',
-        newline=False,
-        disable=False):
+        node: Node,
+        subtype: str,
+        name: str,
+        label: str = '',
+        value: str = '',
+        newline: bool = False,
+        disable: bool = False) -> Knob:
     knob = node.knob(name)
     if knob is not None:
         return knob
@@ -31,7 +33,7 @@ def create_knob(
     return knob
 
 
-def get_knob_value(node, name):
+def get_knob_value(node: Node, name: str) -> Node:
     if name not in node.knobs():
         return
     return node[name].value()

@@ -1,7 +1,8 @@
 import nuke
+from .typing import Node
 
 
-def get_content(backdrop_node):
+def get_content(backdrop_node) -> list[Node]:
     """Return the nodes contained in the backdrop
 
     node.getNodes() can not be used because it is not supported with the

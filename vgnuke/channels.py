@@ -1,7 +1,12 @@
+from typing import Optional
 import nuke
+from .typing import Node
 
 
-def get_available_channels(node, prefix=None, keep_ext=False):
+def get_available_channels(
+        node: Node,
+        prefix: Optional[str] = None,
+        keep_ext: bool = False) -> list:
     """Get all available channels"""
 
     # Connect a deepToImage to get channels
