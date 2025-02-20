@@ -15,3 +15,10 @@ def set_views(view_names: Union[str, list]) -> None:
     for v in views:
         if v not in view_names:
             root.deleteView(v)
+
+
+def get_views():
+    root = nuke.root()
+    views = [
+        v for v in root['views'].toScript().split() if not v.startswith('#')]
+    return views
