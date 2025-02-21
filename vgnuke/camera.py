@@ -6,6 +6,11 @@ def find_top_camera_from_node(
         node: nuke.Node,
         view: str | None = None) -> nuke.Node | None:
 
+    if node.Class() == 'Input':
+        node = node.parent().input(int(node['number'].value()))
+        if node is None:
+            return
+
     if node.Class().startswith('Camera'):
         return node
 
