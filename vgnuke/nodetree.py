@@ -39,3 +39,13 @@ def find_nodes(
         return [n for n in all_nodes if n.Class() == node_class]
     else:
         return nuke.allNodes(node_class, group=group)
+
+
+def get_input_connection(group, name):
+    input_nodes = [n for n in group.nodes() if n.Class() == 'Input']
+    for node in input_nodes:
+        input_name = node.name()
+        if input_name.startswith('Input'):
+            input_name = input_name[len('Input'):]
+        if name == input_name:
+            return group.input(int(node['number'].value()))
