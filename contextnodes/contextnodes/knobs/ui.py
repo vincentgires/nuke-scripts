@@ -1,5 +1,6 @@
 import nuke
 from PySide2 import QtWidgets, QtCore
+import shiboken2
 from contextnodes.knobs import CONTEXT_RULES
 from contextnodes.rules import get_rules, update_rules, build_rule_data
 
@@ -55,6 +56,8 @@ class RulesWidget(QtWidgets.QWidget):
             variable: str | None = None,
             value: str | None = None,
             mode: str = 'include'):
+        if not shiboken2.isValid(self.table):
+            return
         row_position = self.table.rowCount()
         self.table.insertRow(row_position)
         use_checkbox = QtWidgets.QCheckBox()
@@ -97,8 +100,10 @@ class RulesWidget(QtWidgets.QWidget):
         self.table_updated.emit()
 
     def get_rules(self) -> list[dict]:
-        rules = []
         table = self.table
+        if not shiboken2.isValid(table):
+            return
+        rules = []
         for row in range(table.rowCount()):
             use_widget = table.cellWidget(row, self.header_labels['use'])
             use = use_widget.isChecked() if use_widget else None
@@ -126,23 +131,29 @@ class KnobRulesWidget(QtWidgets.QWidget):
 
     def makeUI(self):  # noqa: N802
         self.widget = RulesWidget()
-        rules = get_rules(node=self.node)
-        if rules:
-            for rule in rules:
-                context_variable, context_value = rule['context']
-                self.widget.add_item(
-                    use=rule['use'],
-                    variable=context_variable,
-                    value=context_value,
-                    mode=rule['mode'])
+        self.add_rules()  # Before signals the first time
 
         self.widget.item_changed.connect(self.update_rules)
         self.widget.table_updated.connect(self.update_rules)
 
         return self.widget
 
+    def add_rules(self):
+        rules = get_rules(node=self.node)
+        if rules is None:
+            return
+        for rule in rules:
+            context_variable, context_value = rule['context']
+            self.widget.add_item(
+                use=rule['use'],
+                variable=context_variable,
+                value=context_value,
+                mode=rule['mode'])
+
     def update_rules(self):
-        update_rules(self.node, data=self.widget.get_rules())
+        rules = self.widget.get_rules()
+        if rules is not None:
+            update_rules(self.node, data=rules)
 
 
 def create_rules_knob_widget():

@@ -36,7 +36,8 @@ def get_rules(node: nuke.Node) -> list[dict] | None:
         return rules
 
 
-def update_rules(node: nuke.Node, data: list[dict] | dict):
+def update_rules(
+        node: nuke.Node, data: list[dict] | dict):
     rules = get_rules(node) or []
     if isinstance(data, dict):
         rules.append(data)

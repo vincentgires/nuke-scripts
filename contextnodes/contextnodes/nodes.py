@@ -1,6 +1,8 @@
 import nuke
 import nukescripts.create
-from contextnodes.knobs import add_context_knobs
+from PySide2 import QtCore
+from contextnodes.knobs import CONTEXT_RULES, add_context_knobs
+from contextnodes.rules import build_rule_data, update_rules, get_rules
 from vgnuke.nodetree import get_grid_size
 
 CONTEXT_BACKDROP_NAME = 'ContextBackdrop'
@@ -8,6 +10,8 @@ FONT_SIZE = 16
 ENABLE_COLOR = 1099839487
 DISABLE_COLOR = 2385983487
 LABEL_COLOR = 4294967295
+
+context_value_separator = ','
 
 
 def get_selected_nodes_by_group() -> dict[nuke.Group, nuke.Node]:
@@ -75,6 +79,43 @@ def create_backdrops_for_selected_node() -> list[nuke.BackdropNode]:
     return backdrops
 
 
+def _get_graph_scope_variables(node: nuke.Node | None = None):
+    node = node or nuke.root()
+    gsv_data = node.knobs().get('gsv').value()
+    gsv_default_data = gsv_data.get('Default')
+    return gsv_default_data
+
+
+def add_context_from_gsv(
+        node: nuke.Node,
+        filter_variables: list | None = None,
+        merge: bool = True):
+    gsv_data = _get_graph_scope_variables()
+    for variable, value in gsv_data.items():
+        if filter_variables is not None and variable not in filter_variables:
+            continue
+        append = True
+        if merge:
+            rules = get_rules(node) or []
+            for rule in reversed(rules):
+                rule_variable, rule_value = rule['context']
+                if rule_variable == variable:
+                    append = False
+                    rule_values = rule_value.split(context_value_separator)
+                    if value in rule_values:
+                        break
+                    rule_values.append(value)
+                    rule_value = context_value_separator.join(
+                        sorted(rule_values))
+                    rule['context'] = [rule_variable, rule_value]
+                    break
+            if not append:
+                update_rules(node=node, data=rules)
+        if append:
+            rule_data = build_rule_data(variable=variable, value=value)
+            update_rules(node=node, data=rule_data)
+
+
 def create_context_backdrops() -> list[nuke.BackdropNode]:
     backdrops = create_backdrops_for_selected_node()
     for bd in backdrops:
@@ -85,6 +126,23 @@ def create_context_backdrops() -> list[nuke.BackdropNode]:
         bd['note_font_color'].setValue(LABEL_COLOR)
     return backdrops
 
+
+def create_context_backdrops_from_selection():
+    nodes = nuke.selectedNodes()
+    backdrops = [
+        n for n in nodes
+        if n.Class() == 'BackdropNode' and n.knob(CONTEXT_RULES)]
+    if not backdrops:
+        backdrops = create_context_backdrops()
+    for node in backdrops:
+        node.hideControlPanel()  # Avoid dealing with knob callback and Qt
+        # signals
+        for fct in add_context_callbacks:
+            fct(node)
+        QtCore.QTimer.singleShot(0, lambda: node.showControlPanel())
+
+
+add_context_callbacks = [add_context_from_gsv]
 
 if __name__ == '__main__':
     create_context_backdrops()
