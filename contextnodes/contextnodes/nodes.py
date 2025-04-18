@@ -14,6 +14,33 @@ LABEL_COLOR = 4294967295
 context_value_separator = ','
 
 
+def auto_label(node: nuke.Node | None = None):
+    node = node or nuke.thisNode()
+    if CONTEXT_RULES not in node.knobs():
+        return
+    context_rules_knob = node.knob(CONTEXT_RULES)
+    if context_rules_knob is None:
+        return
+    rules = get_rules(node)
+    if rules is None:
+        return
+    label = ''
+    for rule in reversed(rules):
+        if not rule['use']:
+            continue
+        rule_variable, rule_value = rule['context']
+        rule_mode = rule['mode']
+        operation = '!=' if rule_mode == 'exclude' else '='
+        label += f'<center>{rule_variable} {operation} {rule_value}</center>'
+        if rule_mode == 'exclude':
+            label += (
+                '<center><span style="background-color: dimgray;">'
+                '<font size=2 color=gainsboro>exclude</font>'
+                '</span></center>')
+    label += node['label'].value()
+    return label
+
+
 def get_selected_nodes_by_group() -> dict[nuke.Group, nuke.Node]:
     selected_nodes_by_group = {}
 
