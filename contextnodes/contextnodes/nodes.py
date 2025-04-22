@@ -4,6 +4,9 @@ from PySide2 import QtCore
 from contextnodes.knobs import CONTEXT_RULES, add_context_knobs
 from contextnodes.rules import build_rule_data, update_rules, get_rules
 from vgnuke.nodetree import get_grid_size
+from vgnuke.root import is_root_available
+from vgnuke.knobs import get_knob_value
+from vgnuke.backdrop import get_content as get_backdrop_content
 
 CONTEXT_BACKDROP_NAME = 'ContextBackdrop'
 FONT_SIZE = 16
@@ -25,7 +28,7 @@ def auto_label(node: nuke.Node | None = None):
     if rules is None:
         return
     label = ''
-    for rule in reversed(rules):
+    for rule in rules:
         if not rule['use']:
             continue
         rule_variable, rule_value = rule['context']
@@ -38,6 +41,12 @@ def auto_label(node: nuke.Node | None = None):
                 '<font size=2 color=gainsboro>exclude</font>'
                 '</span></center>')
     label += node['label'].value()
+    return label
+
+
+def auto_label_node(node=None):
+    node = node or nuke.thisNode()
+    label = auto_label(node)
     return label
 
 
@@ -167,6 +176,56 @@ def create_context_backdrops_from_selection():
         for fct in add_context_callbacks:
             fct(node)
         QtCore.QTimer.singleShot(0, lambda: node.showControlPanel())
+
+
+def check_assignation_visibility(node) -> bool:
+    rules = get_rules(node)
+    if rules is None:
+        return False
+    gsv_data = _get_graph_scope_variables()
+    for rule in rules:
+        if not rule['use']:
+            continue
+        rule_variable, rule_value = rule['context']
+        rule_mode = rule['mode']
+        gsv_data_variable = gsv_data.get(rule_variable)
+        if not gsv_data_variable:
+            continue
+        rule_values = rule_value.split(context_value_separator)
+        if rule_mode == 'include' and gsv_data_variable not in rule_values:
+            return False
+        if rule_mode == 'exclude' and gsv_data_variable in rule_values:
+            return False
+    return True
+
+
+def update_content(node: nuke.Node | None = None):
+    if not is_root_available():  # HACK: check root availibilty to avoid issue
+        # on loading .nk file.
+        return
+    node = node or nuke.thisNode()
+    rules = get_knob_value(node, CONTEXT_RULES)
+    if not rules:
+        return
+    enable = check_assignation_visibility(node)
+    nodes = (
+        get_backdrop_content(node)
+        if node.Class() == 'BackdropNode' else [node])
+    for n in nodes:
+        if 'disable' in n.knobs():
+            n.knob('disable').setValue(not enable)
+        if n.Class() != 'BackdropNode':
+            # Autolabel is not working on * nodes. This is then set here.
+            n['autolabel'].setValue(
+                "__import__('importlib')"
+                ".import_module('contextnodes.nodes').auto_label_node()")
+    color = ENABLE_COLOR if enable else DISABLE_COLOR
+    node.knob('tile_color').setValue(color)
+
+
+def switch_visibility():
+    for node in nuke.allNodes('BackdropNode'):
+        update_content(node)
 
 
 add_context_callbacks = [add_context_from_gsv]

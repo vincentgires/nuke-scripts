@@ -1,10 +1,11 @@
 from functools import partial
 import nuke
 from contextnodes.knobs import add_custom_rules_knob
-from contextnodes.nodes import auto_label
+from contextnodes.nodes import auto_label, update_content
 
 if nuke.GUI:
     nuke.addOnCreate(
         partial(add_custom_rules_knob, on_create=True),
         nodeClass='BackdropNode')
     nuke.addAutolabel(auto_label, nodeClass='BackdropNode')
+    nuke.addKnobChanged(update_content, nodeClass='*')
