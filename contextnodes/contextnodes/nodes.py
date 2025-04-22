@@ -138,10 +138,11 @@ def add_context_from_gsv(
                 if rule_variable == variable:
                     append = False
                     rule_values = rule_value.split(context_value_separator)
+                    rule_values = [x.strip() for x in rule_values]
                     if value in rule_values:
                         break
                     rule_values.append(value)
-                    rule_value = context_value_separator.join(
+                    rule_value = (context_value_separator + ' ').join(
                         sorted(rule_values))
                     rule['context'] = [rule_variable, rule_value]
                     break
@@ -192,6 +193,7 @@ def check_assignation_visibility(node) -> bool:
         if not gsv_data_variable:
             continue
         rule_values = rule_value.split(context_value_separator)
+        rule_values = [x.strip() for x in rule_values]
         if rule_mode == 'include' and gsv_data_variable not in rule_values:
             return False
         if rule_mode == 'exclude' and gsv_data_variable in rule_values:
