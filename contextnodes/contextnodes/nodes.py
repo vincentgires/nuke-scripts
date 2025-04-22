@@ -165,18 +165,21 @@ def create_context_backdrops() -> list[nuke.BackdropNode]:
 
 
 def set_context_backdrops_from_selection():
-    nodes = nuke.selectedNodes()
-    backdrops = [
-        n for n in nodes
-        if n.Class() == 'BackdropNode' and n.knob(CONTEXT_RULES)]
-    if not backdrops:
-        backdrops = create_context_backdrops()
-    for node in backdrops:
-        node.hideControlPanel()  # Avoid dealing with knob callback and Qt
-        # signals
-        for fct in add_context_callbacks:
-            fct(node)
-        QtCore.QTimer.singleShot(0, lambda: node.showControlPanel())
+    for group, nodes in get_selected_nodes_by_group().items():
+        if not nodes:
+            continue
+        with group:  # Allow to set backdrops under each groups
+            backdrops = [
+                n for n in nodes
+                if n.Class() == 'BackdropNode' and n.knob(CONTEXT_RULES)]
+            if not backdrops:
+                backdrops = create_context_backdrops()
+            for node in backdrops:
+                node.hideControlPanel()  # Avoid dealing with knob callback
+                # and Qt signals.
+                for fct in add_context_callbacks:
+                    fct(node)
+                QtCore.QTimer.singleShot(0, lambda: node.showControlPanel())
 
 
 def check_assignation_visibility(node) -> bool:
