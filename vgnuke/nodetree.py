@@ -49,3 +49,24 @@ def get_input_connection(group, name):
             input_name = input_name[len('Input'):]
         if name == input_name:
             return group.input(int(node['number'].value()))
+
+
+def get_all_instances(
+        node_class: str | None = None,
+        group: nuke.Node | None = None,
+        exclude_class: str | None = None):
+    nodes = []
+    group_nodes = (
+        group.nodes() if group else nuke.allNodes(recurseGroups=False))
+    for node in group_nodes:
+        cls = node.Class()
+        is_included = (
+            (node_class is None or cls == node_class) and
+            (exclude_class is None or cls != exclude_class))
+        if is_included:
+            nodes.append(node)
+        if cls == 'Group':
+            with node:
+                nodes.extend(get_all_instances(
+                    node_class, node, exclude_class))
+    return nodes

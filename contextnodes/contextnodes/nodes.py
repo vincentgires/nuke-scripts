@@ -164,7 +164,7 @@ def create_context_backdrops() -> list[nuke.BackdropNode]:
     return backdrops
 
 
-def create_context_backdrops_from_selection():
+def set_context_backdrops_from_selection():
     nodes = nuke.selectedNodes()
     backdrops = [
         n for n in nodes
