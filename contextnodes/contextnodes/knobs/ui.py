@@ -3,6 +3,7 @@ from PySide2 import QtWidgets, QtCore
 import shiboken2
 from contextnodes.knobs import CONTEXT_RULES
 from contextnodes.rules import get_rules, update_rules, build_rule_data
+from contextnodes.nodes import set_context_node
 
 
 class RulesWidget(QtWidgets.QWidget):
@@ -13,6 +14,7 @@ class RulesWidget(QtWidgets.QWidget):
         'mode': 3}
     item_changed = QtCore.Signal(int, object)
     table_updated = QtCore.Signal()
+    set_context_clicked = QtCore.Signal()
 
     def __init__(self):
         super().__init__()
@@ -25,6 +27,8 @@ class RulesWidget(QtWidgets.QWidget):
         self.toolbar.addAction(self.remove_button)
         self.add_button.triggered.connect(self.add_item)
         self.remove_button.triggered.connect(self.remove_selected)
+        self.set_context_button = QtWidgets.QPushButton('set current')
+        self.set_context_button.clicked.connect(self.on_set_context_clicked)
 
         self.table = QtWidgets.QTableWidget(self)
         self.table.setColumnCount(len(self.header_labels))
@@ -45,8 +49,11 @@ class RulesWidget(QtWidgets.QWidget):
             QtWidgets.QHeaderView.ResizeToContents)
 
         layout = QtWidgets.QHBoxLayout(self)
+        sublayout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.toolbar)
-        layout.addWidget(self.table)
+        layout.addLayout(sublayout)
+        sublayout.addWidget(self.table)
+        sublayout.addWidget(self.set_context_button)
 
         self.table.itemChanged.connect(self.on_item_changed)
 
@@ -90,6 +97,9 @@ class RulesWidget(QtWidgets.QWidget):
 
     def on_combobox_changed(self, row, index):
         self.item_changed.emit(row, index)
+
+    def on_set_context_clicked(self):
+        self.set_context_clicked.emit()
 
     def remove_selected(self):
         selection_model = self.table.selectionModel()
@@ -135,6 +145,7 @@ class KnobRulesWidget(QtWidgets.QWidget):
 
         self.widget.item_changed.connect(self.update_rules)
         self.widget.table_updated.connect(self.update_rules)
+        self.widget.set_context_clicked.connect(self.set_context)
 
         return self.widget
 
@@ -154,6 +165,9 @@ class KnobRulesWidget(QtWidgets.QWidget):
         rules = self.widget.get_rules()
         if rules is not None:
             update_rules(self.node, data=rules)
+
+    def set_context(self):
+        set_context_node(self.node)
 
 
 def create_rules_knob_widget():
