@@ -1,3 +1,4 @@
+import fnmatch
 import nuke
 import nukescripts.create
 from PySide2 import QtCore
@@ -186,6 +187,15 @@ def set_context_backdrops_from_selection():
                 set_context_node(node)
 
 
+def match_rule_value(test_value: str, rule_value: str) -> bool:
+    return fnmatch.fnmatch(test_value, rule_value)
+
+
+def rule_value_split(rule_value: str) -> list[str]:
+    rule_values = rule_value.split(context_value_separator)
+    return [x.strip() for x in rule_values]
+
+
 def check_assignation_visibility(node) -> bool:
     rules = get_rules(node)
     if rules is None:
@@ -199,11 +209,12 @@ def check_assignation_visibility(node) -> bool:
         gsv_data_variable = gsv_data.get(rule_variable)
         if not gsv_data_variable:
             continue
-        rule_values = rule_value.split(context_value_separator)
-        rule_values = [x.strip() for x in rule_values]
-        if rule_mode == 'include' and gsv_data_variable not in rule_values:
+        rule_values = rule_value_split(rule_value)
+        match_found = any(
+            match_rule_value(gsv_data_variable, rv) for rv in rule_values)
+        if rule_mode == 'include' and not match_found:
             return False
-        if rule_mode == 'exclude' and gsv_data_variable in rule_values:
+        if rule_mode == 'exclude' and match_found:
             return False
     return True
 
