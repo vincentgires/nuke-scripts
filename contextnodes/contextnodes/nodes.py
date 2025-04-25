@@ -35,7 +35,9 @@ def auto_label(node: nuke.Node | None = None):
         rule_variable, rule_value = rule['context']
         rule_mode = rule['mode']
         operation = '!=' if rule_mode == 'exclude' else '='
-        label += f'<center>{rule_variable} {operation} {rule_value}</center>'
+        rule_display = (
+            f'{rule_variable} {operation} ' if len(rules) > 1 else '')
+        label += f'<center>{rule_display}{rule_value}</center>'
         if rule_mode == 'exclude':
             label += (
                 '<center><span style="background-color: dimgray;">'
