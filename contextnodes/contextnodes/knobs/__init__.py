@@ -1,5 +1,5 @@
 import nuke
-from PySide2 import QtCore
+from vgnuke.qt import QtCore
 from vgnuke.knobs import create_knob
 
 CONTEXT_TAB = 'context_tab'

@@ -1,7 +1,7 @@
 import os
 from functools import partial
 import nuke
-from PySide2 import QtWidgets, QtCore, QtGui
+from vgnuke.qt import QtWidgets, QtCore, QtGui
 
 CM_TAB_NAME = 'Connection Manager'
 CM_NODES_KNOB = 'connection_manager_nodes'

@@ -1,5 +1,5 @@
 import nuke
-from PySide2 import QtWidgets, QtCore
+from vgnuke.qt import QtWidgets, QtCore, QtGui
 import shiboken2
 from contextnodes.knobs import CONTEXT_RULES
 from contextnodes.rules import get_rules, update_rules, build_rule_data
@@ -21,8 +21,8 @@ class RulesWidget(QtWidgets.QWidget):
 
         self.toolbar = QtWidgets.QToolBar(self)
         self.toolbar.setOrientation(QtCore.Qt.Vertical)
-        self.add_button = QtWidgets.QAction('➕', self)
-        self.remove_button = QtWidgets.QAction('➖', self)
+        self.add_button = QtGui.QAction('➕', self)
+        self.remove_button = QtGui.QAction('➖', self)
         self.toolbar.addAction(self.add_button)
         self.toolbar.addAction(self.remove_button)
         self.add_button.triggered.connect(self.add_item)

@@ -1,9 +1,9 @@
 import fnmatch
 import nuke
 import nukescripts.create
-from PySide2 import QtCore
 from contextnodes.knobs import CONTEXT_RULES, add_context_knobs
 from contextnodes.rules import build_rule_data, update_rules, get_rules
+from vgnuke.qt import QtCore
 from vgnuke.nodetree import get_grid_size
 from vgnuke.root import is_root_available
 from vgnuke.knobs import get_knob_value
