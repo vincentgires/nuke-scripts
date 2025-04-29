@@ -4,7 +4,7 @@ import nukescripts.create
 from contextnodes.knobs import CONTEXT_RULES, add_context_knobs
 from contextnodes.rules import build_rule_data, update_rules, get_rules
 from vgnuke.qt import QtCore
-from vgnuke.nodetree import get_grid_size
+from vgnuke.nodetree import get_grid_size, get_all_instances
 from vgnuke.root import is_root_available
 from vgnuke.knobs import get_knob_value
 from vgnuke.backdrop import get_content as get_backdrop_content
@@ -28,7 +28,7 @@ def auto_label(node: nuke.Node | None = None):
     rules = get_rules(node)
     if rules is None:
         return
-    label = ''
+    label = '' if node.Class() == 'BackdropNode' else node.name()
     for rule in rules:
         if not rule['use']:
             continue
@@ -156,14 +156,19 @@ def add_context_from_gsv(
             update_rules(node=node, data=rule_data)
 
 
+def _set_context_look(node):
+    if node.Class() == 'BackdropNode':
+        node['note_font_size'].setValue(FONT_SIZE)
+    node['note_font_color'].setValue(LABEL_COLOR)
+
+
 def create_context_backdrops() -> list[nuke.BackdropNode]:
     backdrops = create_backdrops_for_selected_node()
     for bd in backdrops:
         add_context_knobs(node=bd)
         bd['appearance'].setValue('Border')
         bd.setName(CONTEXT_BACKDROP_NAME)
-        bd['note_font_size'].setValue(FONT_SIZE)
-        bd['note_font_color'].setValue(LABEL_COLOR)
+        _set_context_look(bd)
     return backdrops
 
 
@@ -186,6 +191,19 @@ def set_context_backdrops_from_selection():
             if not backdrops:
                 backdrops = create_context_backdrops()
             for node in backdrops:
+                set_context_node(node)
+
+
+def set_context_nodes_from_selection():
+    for group, nodes in get_selected_nodes_by_group().items():
+        nodes = [n for n in nodes if n.Class() != 'BackdropNode']
+        if not nodes:
+            continue
+        with group:  # Allow to set nodes under each groups
+            for node in nodes:
+                if node.knob(CONTEXT_RULES) is None:
+                    add_context_knobs(node=node, force=True)
+                    _set_context_look(node)
                 set_context_node(node)
 
 
@@ -246,7 +264,7 @@ def update_content(node: nuke.Node | None = None):
 
 
 def switch_visibility():
-    for node in nuke.allNodes('BackdropNode'):
+    for node in get_all_instances():
         update_content(node)
 
 
