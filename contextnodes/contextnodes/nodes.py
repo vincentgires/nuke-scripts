@@ -3,6 +3,9 @@ import nuke
 import nukescripts.create
 from contextnodes.knobs import CONTEXT_RULES, add_context_knobs
 from contextnodes.rules import build_rule_data, update_rules, get_rules
+from contextnodes.preferences import (
+    PREFS_BACKDROP_APPEARANCE_KNOB,
+    get_preferences_node)
 from vgnuke.qt import QtCore
 from vgnuke.nodetree import get_grid_size, get_all_instances
 from vgnuke.root import is_root_available
@@ -166,7 +169,9 @@ def create_context_backdrops() -> list[nuke.BackdropNode]:
     backdrops = create_backdrops_for_selected_node()
     for bd in backdrops:
         add_context_knobs(node=bd)
-        bd['appearance'].setValue('Border')
+        appearance = get_preferences_node()[
+            PREFS_BACKDROP_APPEARANCE_KNOB].value()
+        bd['appearance'].setValue(appearance)
         bd.setName(CONTEXT_BACKDROP_NAME)
         _set_context_look(bd)
     return backdrops
