@@ -1,4 +1,5 @@
 import fnmatch
+from typing import Callable
 import nuke
 import nukescripts.create
 from contextnodes.knobs import CONTEXT_RULES, add_context_knobs
@@ -131,12 +132,15 @@ def _get_graph_scope_variables(node: nuke.Node | None = None):
 def add_context_from_gsv(
         node: nuke.Node,
         filter_variables: list | None = None,
+        process_value: Callable | None = None,
         merge: bool = True):
     gsv_data = _get_graph_scope_variables()
     for variable, value in gsv_data.items():
         if filter_variables is not None and variable not in filter_variables:
             continue
         append = True
+        if process_value is not None:
+            value = process_value(value)
         if merge:
             rules = get_rules(node) or []
             for rule in reversed(rules):
@@ -157,6 +161,38 @@ def add_context_from_gsv(
         if append:
             rule_data = build_rule_data(variable=variable, value=value)
             update_rules(node=node, data=rule_data)
+
+
+def remove_context_from_gsv(
+        node: nuke.Node,
+        filter_variables: list | None = None,
+        match_value: Callable | None = None):
+    gsv_data = _get_graph_scope_variables()
+    for variable, value in gsv_data.items():
+        if filter_variables is not None and variable not in filter_variables:
+            continue
+        rules = get_rules(node) or []
+        is_updated = False
+        for rule in reversed(rules):  # Reversed to allow delete item
+            rule_variable, rule_value = rule['context']
+            if rule_variable == variable:
+                rule_values = rule_value.split(context_value_separator)
+                rule_values = [x.strip() for x in rule_values]
+                value_to_check = value
+                if match_value is not None:
+                    value_to_check = match_value(rule_values, value)
+                if value_to_check not in rule_values:
+                    continue
+                is_updated = True
+                rule_values.remove(value_to_check)
+                if rule_values:
+                    rule_value = (context_value_separator + ' ').join(
+                        sorted(rule_values))
+                    rule['context'] = [rule_variable, rule_value]
+                else:
+                    rules.remove(rule)
+        if is_updated:
+            update_rules(node=node, data=rules)
 
 
 def _set_context_look(node):
@@ -181,6 +217,14 @@ def set_context_node(node: nuke.Node):
     node.hideControlPanel()  # Avoid dealing with knob callback
     # and Qt signals.
     for fct in add_context_callbacks:
+        fct(node)
+    QtCore.QTimer.singleShot(0, lambda: node.showControlPanel())
+
+
+def clear_context_node(node: nuke.Node):
+    node.hideControlPanel()  # Avoid dealing with knob callback
+    # and Qt signals.
+    for fct in remove_context_callbacks:
         fct(node)
     QtCore.QTimer.singleShot(0, lambda: node.showControlPanel())
 
@@ -274,6 +318,7 @@ def switch_visibility():
 
 
 add_context_callbacks = [add_context_from_gsv]
+remove_context_callbacks = [remove_context_from_gsv]
 
 if __name__ == '__main__':
     create_context_backdrops()

@@ -3,7 +3,7 @@ from vgnuke.qt import QtWidgets, QtCore, QtGui
 import shiboken2
 from contextnodes.knobs import CONTEXT_RULES
 from contextnodes.rules import get_rules, update_rules, build_rule_data
-from contextnodes.nodes import set_context_node
+from contextnodes.nodes import set_context_node, clear_context_node
 
 
 class RulesWidget(QtWidgets.QWidget):
@@ -15,6 +15,7 @@ class RulesWidget(QtWidgets.QWidget):
     item_changed = QtCore.Signal(int, object)
     table_updated = QtCore.Signal()
     set_context_clicked = QtCore.Signal()
+    clear_context_clicked = QtCore.Signal()
 
     def __init__(self):
         super().__init__()
@@ -29,6 +30,9 @@ class RulesWidget(QtWidgets.QWidget):
         self.remove_button.triggered.connect(self.remove_selected)
         self.set_context_button = QtWidgets.QPushButton('set current')
         self.set_context_button.clicked.connect(self.on_set_context_clicked)
+        self.clear_context_button = QtWidgets.QPushButton('remove current')
+        self.clear_context_button.clicked.connect(
+            self.on_clear_context_clicked)
 
         self.table = QtWidgets.QTableWidget(self)
         self.table.setColumnCount(len(self.header_labels))
@@ -53,7 +57,10 @@ class RulesWidget(QtWidgets.QWidget):
         layout.addWidget(self.toolbar)
         layout.addLayout(sublayout)
         sublayout.addWidget(self.table)
-        sublayout.addWidget(self.set_context_button)
+        edit_context_layout = QtWidgets.QHBoxLayout()
+        edit_context_layout.addWidget(self.set_context_button)
+        edit_context_layout.addWidget(self.clear_context_button)
+        sublayout.addLayout(edit_context_layout)
 
         self.table.itemChanged.connect(self.on_item_changed)
 
@@ -101,6 +108,9 @@ class RulesWidget(QtWidgets.QWidget):
     def on_set_context_clicked(self):
         self.set_context_clicked.emit()
 
+    def on_clear_context_clicked(self):
+        self.clear_context_clicked.emit()
+
     def remove_selected(self):
         selection_model = self.table.selectionModel()
         selected_rows = set(
@@ -146,6 +156,7 @@ class KnobRulesWidget(QtWidgets.QWidget):
         self.widget.item_changed.connect(self.update_rules)
         self.widget.table_updated.connect(self.update_rules)
         self.widget.set_context_clicked.connect(self.set_context)
+        self.widget.clear_context_clicked.connect(self.clear_context)
 
         return self.widget
 
@@ -168,6 +179,9 @@ class KnobRulesWidget(QtWidgets.QWidget):
 
     def set_context(self):
         set_context_node(self.node)
+
+    def clear_context(self):
+        clear_context_node(self.node)
 
 
 def create_rules_knob_widget():
