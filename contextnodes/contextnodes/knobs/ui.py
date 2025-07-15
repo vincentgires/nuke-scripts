@@ -126,19 +126,22 @@ class RulesWidget(QtWidgets.QWidget):
         rules = []
         for row in range(table.rowCount()):
             use_widget = table.cellWidget(row, self.header_labels['use'])
-            use = use_widget.isChecked() if use_widget else None
             variable_item = table.item(row, self.header_labels['variable'])
-            variable = variable_item.text() if variable_item else None
             value_item = table.item(row, self.header_labels['value'])
-            value = value_item.text() if value_item else None
             mode_widget = table.cellWidget(row, self.header_labels['mode'])
-            mode = mode_widget.currentText() if mode_widget else None
-            rule = build_rule_data(
-                variable=variable,
-                value=value,
-                use=use,
-                mode=mode)
-            if variable and value:
+            build_arguments = {}
+            if use_widget:
+                build_arguments['use'] = use_widget.isChecked()
+            if variable_item:
+                build_arguments['variable'] = variable_item.text()
+            if value_item:
+                build_arguments['value'] = value_item.text()
+            if mode_widget:
+                build_arguments['mode'] = mode_widget.currentText()
+            if not build_arguments:
+                continue
+            if all(build_arguments.get(k) for k in ('variable', 'value')):
+                rule = build_rule_data(**build_arguments)
                 rules.append(rule)
         return rules
 
