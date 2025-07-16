@@ -1,6 +1,5 @@
 import nuke
-from vgnuke.qt import QtWidgets, QtCore, QtGui
-import shiboken2
+from vgnuke.qt import QtWidgets, QtCore, QtGui, shiboken
 from contextnodes.knobs import CONTEXT_RULES
 from contextnodes.rules import get_rules, update_rules, build_rule_data
 from contextnodes.nodes import set_context_node, clear_context_node
@@ -70,7 +69,7 @@ class RulesWidget(QtWidgets.QWidget):
             variable: str | None = None,
             value: str | None = None,
             mode: str = 'include'):
-        if not shiboken2.isValid(self.table):
+        if not shiboken.isValid(self.table):
             return
         row_position = self.table.rowCount()
         self.table.insertRow(row_position)
@@ -121,7 +120,7 @@ class RulesWidget(QtWidgets.QWidget):
 
     def get_rules(self) -> list[dict]:
         table = self.table
-        if not shiboken2.isValid(table):
+        if not shiboken.isValid(table):
             return
         rules = []
         for row in range(table.rowCount()):
