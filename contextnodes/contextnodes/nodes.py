@@ -7,7 +7,7 @@ from contextnodes.rules import build_rule_data, update_rules, get_rules
 from contextnodes.preferences import (
     PREFS_BACKDROP_APPEARANCE_KNOB,
     get_preferences_node)
-from vgnuke.qt import QtCore
+from qtbinding import QtCore
 from vgnuke.nodetree import get_grid_size, get_all_instances
 from vgnuke.root import is_root_available
 from vgnuke.knobs import get_knob_value

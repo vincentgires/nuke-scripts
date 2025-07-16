@@ -1,5 +1,5 @@
 import nuke
-from vgnuke.qt import QtWidgets, QtCore, QtGui, shiboken
+from qtbinding import QtWidgets, QtCore, QtGui, shiboken
 from contextnodes.knobs import CONTEXT_RULES
 from contextnodes.rules import get_rules, update_rules, build_rule_data
 from contextnodes.nodes import set_context_node, clear_context_node
