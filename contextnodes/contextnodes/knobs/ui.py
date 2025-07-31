@@ -37,7 +37,6 @@ class RulesWidget(QtWidgets.QWidget):
         self.table.setColumnCount(len(self.header_labels))
         self.table.setHorizontalHeaderLabels(list(self.header_labels.keys()))
         header = self.table.horizontalHeader()
-        header = self.table.horizontalHeader()
         header.setSectionResizeMode(
             self.header_labels['use'],
             QtWidgets.QHeaderView.ResizeToContents)
