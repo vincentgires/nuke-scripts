@@ -27,7 +27,7 @@ def find_top_transform_node(
             view = view or viewer.view()
         if view is None:
             view = get_views()[0]
-        view_index = get_views().index(view)  # Be carefull here, list of viwes
+        view_index = get_views().index(view)  # Be carefull here, list of views
         # in root node and JoinViews inputs might not match.
         input_node = node.input(view_index)
         if input_node is not None:
