@@ -317,6 +317,37 @@ def switch_visibility():
         update_content(node)
 
 
+def get_visible_nodes(node_class: str | list[str] | None = None):
+    """Get all visible nodes of the given class
+
+    Nodes are included if no rule disables them.
+    Nodes outside a context backdrop or without any rule are also included.
+    """
+    not_visible_nodes = []
+    # Filter backdrop context content
+    not_visible_multishot_backdrop_nodes = [
+        n for n in get_all_instances(node_class='BackdropNode')
+        if CONTEXT_RULES in n.knobs()
+        and not check_assignation_visibility(n)]
+    for bd in not_visible_multishot_backdrop_nodes:
+        not_visible_nodes.extend(get_backdrop_content(bd))
+    if isinstance(node_class, str):
+        node_class = [node_class]
+    if node_class is None:
+        all_nodes = get_all_instances()
+    else:
+        all_nodes = []
+        for nc in node_class:
+            all_nodes.extend(get_all_instances(nc))
+    nodes = [n for n in all_nodes if n not in not_visible_nodes]
+    # Filter single nodes with CONTEXT_RULES knob
+    nodes = [
+        n for n in nodes
+        if (CONTEXT_RULES in n.knobs() and check_assignation_visibility(n))
+        or CONTEXT_RULES not in n.knobs()]
+    return nodes
+
+
 add_context_callbacks = [add_context_from_gsv]
 remove_context_callbacks = [remove_context_from_gsv]
 
