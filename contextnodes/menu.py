@@ -1,5 +1,6 @@
 from contextnodes.nodes import (
     set_context_backdrops_from_selection, set_context_nodes_from_selection)
+from contextnodes.switch import create_context_switch
 import nuke
 
 MENU_NAME = 'Context'
@@ -16,6 +17,15 @@ def create_menus():
         name='Set Current Nodes',
         command=set_context_nodes_from_selection,
         shortcut='alt+f2')
+    menu.addCommand(
+        name='Create ContextSwitch',
+        command=create_context_switch)
+
+    nuke_toolbar = nuke.toolbar('Nodes')
+    cn_menu = nuke_toolbar.addMenu('ContextNodes')
+    cn_menu.addCommand(
+        name='ContextSwitch',
+        command=create_context_switch)
 
 
 create_menus()

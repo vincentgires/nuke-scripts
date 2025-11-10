@@ -122,17 +122,17 @@ def create_backdrops_for_selected_node() -> list[nuke.BackdropNode]:
     return backdrops
 
 
-def _get_graph_scope_variables(node: nuke.Node | None = None):
+def get_graph_scope_variables(node: nuke.Node | None = None):
     node = node or nuke.root()
     gsv_data = node.knobs().get('gsv').value()
     return gsv_data
 
 
-def _get_default_graph_scope_variables(
+def get_default_graph_scope_variables(
         node: nuke.Node | None = None,
         gsv_data: dict | None = None) -> dict:
     node = node or nuke.root()
-    gsv_data = gsv_data or _get_graph_scope_variables(node)
+    gsv_data = gsv_data or get_graph_scope_variables(node)
     gsv_default_data = gsv_data.get('__default__', gsv_data.get('Default'))
     # Nuke 15 used 'Default', from Nuke 16, it uses '__default__'
     return gsv_default_data
@@ -143,7 +143,7 @@ def add_context_from_gsv(
         filter_variables: list | None = None,
         process_value: Callable | None = None,
         merge: bool = True):
-    gsv_data = _get_default_graph_scope_variables()
+    gsv_data = get_default_graph_scope_variables()
     for variable, value in gsv_data.items():
         if filter_variables is not None and variable not in filter_variables:
             continue
@@ -176,7 +176,7 @@ def remove_context_from_gsv(
         node: nuke.Node,
         filter_variables: list | None = None,
         match_value: Callable | None = None):
-    gsv_data = _get_default_graph_scope_variables()
+    gsv_data = get_default_graph_scope_variables()
     for variable, value in gsv_data.items():
         if filter_variables is not None and variable not in filter_variables:
             continue
@@ -278,7 +278,7 @@ def check_assignation_visibility(node) -> bool:
     rules = get_rules(node)
     if rules is None:
         return False
-    gsv_data = _get_default_graph_scope_variables()
+    gsv_data = get_default_graph_scope_variables()
     for rule in rules:
         if not rule['use']:
             continue
