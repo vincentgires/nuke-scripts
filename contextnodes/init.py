@@ -2,8 +2,11 @@ from functools import partial
 import nuke
 from contextnodes.knobs import add_custom_rules_knob
 from contextnodes.nodes import auto_label, update_content
-from contextnodes.switch import add_custom_switch_knob
+from contextnodes.switch import add_custom_switch_knob, sync_variable_knob, update_context_switch_group_content
 from contextnodes.preferences import create_preferences_knobs
+
+nuke.addKnobChanged(sync_variable_knob, nodeClass='ContextSwitch')
+nuke.addOnCreate(update_context_switch_group_content, nodeClass='ContextSwitch')
 
 if nuke.GUI:
     nuke.addOnCreate(

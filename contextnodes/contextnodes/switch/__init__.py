@@ -1,4 +1,5 @@
 import json
+from contextlib import contextmanager
 import nuke
 import nukescripts.create
 from qtbinding import QtCore
@@ -14,18 +15,44 @@ CONTEXT_SWITCH_RULES_PY = 'contextswitch_rules_py'
 NODE_NAME = 'ContextSwitch'
 
 
-def add_custom_switch_knob(node: nuke.Node = None, on_create: bool = False):
+@contextmanager
+def enter_group(group):
+    group.begin()
+    yield group
+    group.end()
+
+
+def sync_variable_knob():
+    node = nuke.thisNode()
+    if CONTEXT_SWITCH_VARIABLE not in node.knobs():
+        return
+    value = node[CONTEXT_SWITCH_VARIABLE].value()
+    with enter_group(node) as _:
+        if switch_node := nuke.toNode('Switch'):
+            switch_node[CONTEXT_SWITCH_VARIABLE].setValue(value)
+
+
+def add_custom_switch_knob(
+        node: nuke.Node = None,
+        on_create: bool = False,
+        group: bool = False):
     node = node or nuke.thisNode()
     rules_knob = node.knob(CONTEXT_SWITCH_RULES)
     if not rules_knob:
         return
     rules_knob.setFlag(nuke.INVISIBLE)
 
+    knob_py = (
+        'create_group_rules_knob_widget'
+        if group else 'create_rules_knob_widget')
+
     def set_value(py_knob):
         # Custom UI knob
         py_knob.setValue(
             "__import__('importlib').import_module('contextnodes.switch.ui')"
-            ".create_rules_knob_widget()")
+            f".{knob_py}()")
+        if node.Class() != 'Switch':
+            return
         # which knob
         expression = (
             "[python -execlocal ret="
@@ -51,17 +78,23 @@ def add_custom_switch_knob(node: nuke.Node = None, on_create: bool = False):
         node.addKnob(py_knob)
 
 
-def create_context_switch():
-    node = nukescripts.create.createNodeLocal('Switch', inpanel=False)
-    node.setName(NODE_NAME)
+def create_context_switch_node(
+        group: bool = False, name: str | None = None, local: bool = True):
+    node_class = 'Group' if group else 'Switch'
+    if local:
+        node = nukescripts.create.createNodeLocal(node_class, inpanel=False)
+    else:
+        node = nuke.createNode(node_class, inpanel=False)
+    node.setName(name or NODE_NAME)
     if not node.knob(CONTEXT_TAB):
         tab_knob = nuke.Tab_Knob(CONTEXT_TAB, NODE_NAME, False)
         node.addKnob(tab_knob)
-    if node.Class() == 'Switch':
-        # Custom knobs
-        create_knob(node, 'STRING', CONTEXT_SWITCH_VARIABLE, 'variable', '')
-        create_knob(node, 'STRING', CONTEXT_SWITCH_RULES, 'rules', '')
-        add_custom_switch_knob(node)
+    # Custom knobs
+    create_knob(node, 'STRING', CONTEXT_SWITCH_VARIABLE, 'variable', '')
+    create_knob(node, 'STRING', CONTEXT_SWITCH_RULES, 'rules', '')
+    add_custom_switch_knob(node, group=group)
+    if node_class == 'Group':
+        nuke.addKnobChanged(sync_variable_knob, node=node)
     return node
 
 
@@ -96,5 +129,51 @@ def resolve_index(node: nuke.Node):
     return 0
 
 
+def update_context_switch_group_content(node: nuke.Node | None = None):
+    node = node or nuke.thisNode()
+    rules = get_rules(node)
+
+    def get_input_nodes():
+        nodes = [n for n in group.nodes() if n.Class() == 'Input']
+        return sorted(nodes, key=lambda n: n['number'].value())
+
+    with enter_group(node) as group:
+        # Get all inputs
+        input_nodes = get_input_nodes()
+
+        # Clean unassigned from rules
+        for n in input_nodes[len(rules):]:
+            nuke.delete(n)
+
+        # Refresh inputs
+        input_nodes = get_input_nodes()
+
+        # Sync (match rules and inputs)
+        for i, rule in enumerate(rules):
+            if i >= len(input_nodes):
+                input_nodes.append(nuke.nodes.Input())
+            input_nodes[i].setName(f"Input{rule['value']}")
+
+        # Context control
+        switch_node = nuke.toNode('Switch')
+        if switch_node is None:
+            switch_node = create_context_switch_node(
+                group=False, name='Switch', local=False)
+        switch_rules = [
+            {'index': i, 'value': rule['value']}
+            for i, rule in enumerate(rules)]
+        update_rules(node=switch_node, data=switch_rules)
+
+        # Create or get output
+        ouput_node = nuke.toNode('Output1')
+        if ouput_node is None:
+            ouput_node = nuke.nodes.Output(name='Output1')
+
+        # Connect inputs and output to switch
+        for i, input_node in enumerate(input_nodes):
+            switch_node.setInput(i, input_node)
+        ouput_node.setInput(0, switch_node)
+
+
 if __name__ == '__main__':
-    create_context_switch()
+    create_context_switch_node()

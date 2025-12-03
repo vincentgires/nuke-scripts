@@ -1,0 +1,18 @@
+Gizmo {
+ addUserKnob {20 context_switch_tab l ContextSwitch}
+ addUserKnob {1 contextswitch_variable l variable}
+ # addUserKnob {1 contextswitch_rules l rules +INVISIBLE}
+ addUserKnob {1 contextswitch_rules l rules}
+ addUserKnob {52 contextswitch_rules_py l rules T __import__('importlib').import_module('contextnodes.switch.ui').create_group_rules_knob_widget() +STARTLINE}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 0
+ }
+ Output {
+  name Output1
+  xpos 0
+  ypos 300
+ }
+end_group
