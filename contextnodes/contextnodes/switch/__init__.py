@@ -174,6 +174,12 @@ def update_context_switch_group_content(node: nuke.Node | None = None):
             switch_node.setInput(i, input_node)
         ouput_node.setInput(0, switch_node)
 
+        # Clean unused
+        if group.Class() == 'Group':  # Not needed with gizmo
+            for node in list(group.nodes()):
+                if node not in [switch_node, ouput_node] + input_nodes:
+                    nuke.delete(node)
+
 
 if __name__ == '__main__':
     create_context_switch_node()
