@@ -27,9 +27,14 @@ def sync_variable_knob():
     if CONTEXT_SWITCH_VARIABLE not in node.knobs():
         return
     value = node[CONTEXT_SWITCH_VARIABLE].value()
-    with enter_group(node) as _:
-        if switch_node := nuke.toNode('Switch'):
-            switch_node[CONTEXT_SWITCH_VARIABLE].setValue(value)
+
+    # NOTE: don't use enter_group() here, this makes connections fail on script
+    # file load.
+    # with enter_group(node) as _:
+    #     if switch_node := nuke.toNode('Switch'):
+    #         switch_node[CONTEXT_SWITCH_VARIABLE].setValue(value)
+    [n[CONTEXT_SWITCH_VARIABLE].setValue(value)
+     for n in node.nodes() if n.Class() == 'Switch']
 
 
 def add_custom_switch_knob(
@@ -131,7 +136,7 @@ def resolve_index(node: nuke.Node):
 
 def update_context_switch_group_content(node: nuke.Node | None = None):
     node = node or nuke.thisNode()
-    rules = get_rules(node)
+    rules = get_rules(node) or []
 
     def get_input_nodes():
         nodes = [n for n in group.nodes() if n.Class() == 'Input']
