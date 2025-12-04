@@ -23,8 +23,8 @@ def enter_group(group):
     group.end()
 
 
-def sync_variable_knob():
-    node = nuke.thisNode()
+def sync_variable_knob(node: nuke.Node | None = None):
+    node = node or nuke.thisNode()
     if CONTEXT_SWITCH_VARIABLE not in node.knobs():
         return
     value = node[CONTEXT_SWITCH_VARIABLE].value()

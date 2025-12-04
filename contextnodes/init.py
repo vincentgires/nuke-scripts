@@ -8,9 +8,16 @@ from contextnodes.switch import (
     update_context_switch_group_content)
 from contextnodes.preferences import create_preferences_knobs
 
+
+def sync_context_switch_on_load():
+    for node in nuke.allNodes('ContextSwitch'):
+        sync_variable_knob(node)
+
+
 nuke.addOnCreate(
     update_context_switch_group_content, nodeClass='ContextSwitch')
 nuke.addKnobChanged(sync_variable_knob, nodeClass='ContextSwitch')
+nuke.addOnScriptLoad(sync_context_switch_on_load)
 
 if nuke.GUI:
     nuke.addOnCreate(
