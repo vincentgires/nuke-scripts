@@ -1,3 +1,4 @@
+import os
 from contextnodes.nodes import (
     set_context_backdrops_from_selection, set_context_nodes_from_selection)
 from contextnodes.switch import create_context_switch_node
@@ -20,32 +21,34 @@ def create_menus():
         command=set_context_nodes_from_selection,
         shortcut='alt+f2')
     menu.addCommand(
-        name='Create ContextSwitch (Gizmo)',
+        name='Create ContextSwitch',
         command=partial(
             nukescripts.create.createNodeLocal,
             'ContextSwitch',
             inpanel=False))
-    menu.addCommand(
-        name='Create ContextSwitch (Group)',
-        command=partial(create_context_switch_node, group=True))
-    menu.addCommand(
-        name='Create ContextSwitch (Switch)',
-        command=create_context_switch_node)
 
     nuke_toolbar = nuke.toolbar('Nodes')
     cn_menu = nuke_toolbar.addMenu('ContextNodes')
     cn_menu.addCommand(
-        name='ContextSwitch (Gizmo)',
+        name='ContextSwitch',
         command=partial(
             nukescripts.create.createNodeLocal,
             'ContextSwitch',
             inpanel=False))
-    cn_menu.addCommand(
-        name='ContextSwitch (Group)',
-        command=partial(create_context_switch_node, group=True))
-    cn_menu.addCommand(
-        name='ContextSwitch (Switch)',
-        command=create_context_switch_node)
+
+    if os.environ.get('CONTEXTNODES_DEV'):
+        menu.addCommand(
+            name='Create ContextSwitch (Group)',
+            command=partial(create_context_switch_node, group=True))
+        menu.addCommand(
+            name='Create ContextSwitch (Switch)',
+            command=create_context_switch_node)
+        cn_menu.addCommand(
+            name='ContextSwitch (Group)',
+            command=partial(create_context_switch_node, group=True))
+        cn_menu.addCommand(
+            name='ContextSwitch (Switch)',
+            command=create_context_switch_node)
 
 
 create_menus()
