@@ -1,4 +1,5 @@
 import json
+import re
 from contextlib import contextmanager
 import nuke
 import nukescripts.create
@@ -134,6 +135,14 @@ def resolve_index(node: nuke.Node):
     return 0
 
 
+def safe_node_name(value, fallback='Input'):
+    value = str(value)
+    safe_value = re.sub(r'[^0-9A-Za-z_]', '_', value)
+    if not safe_value:
+        safe_value = fallback
+    return safe_value
+
+
 def update_context_switch_group_content(node: nuke.Node | None = None):
     node = node or nuke.thisNode()
     rules = get_rules(node) or []
@@ -157,7 +166,7 @@ def update_context_switch_group_content(node: nuke.Node | None = None):
         for i, rule in enumerate(rules):
             if i >= len(input_nodes):
                 input_nodes.append(nuke.nodes.Input())
-            input_nodes[i].setName(f"Input{rule['value']}")
+            input_nodes[i].setName(f"Input{safe_node_name(rule['value'])}")
 
         # Context control
         switch_node = nuke.toNode('Switch')
